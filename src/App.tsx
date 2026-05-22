@@ -1,0 +1,65 @@
+/**
+ * Azze Platform - Main Application
+ * Parent Company: Arca
+ * 
+ * A comprehensive real-time backend hosting platform
+ */
+
+import { useEffect, useState } from 'react';
+import { AppProvider, useApp } from './store/AppContext';
+import { AuthScreen } from './components/AuthScreen';
+import { Dashboard } from './components/Dashboard';
+import { OAuthCallback } from './pages/OAuthCallback';
+import { handleOAuthCallback } from './lib/oauth';
+
+function AppContent() {
+  const { isAuthenticated, isLoading } = useApp();
+  const [showCallback, setShowCallback] = useState(false);
+
+  // Check for OAuth callback on mount
+  useEffect(() => {
+    const { code, provider } = handleOAuthCallback();
+    if (code && provider) {
+      setShowCallback(true);
+    }
+  }, []);
+
+  // Handle API auth callback paths - redirect to home after backend processes
+  useEffect(() => {
+    const isApiCallback = window.location.pathname.startsWith('/api/auth/callback/');
+    if (isApiCallback) {
+      // Backend will handle the callback, then redirect back to frontend
+      // Show a loading state
+    }
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 bg-[#c37a4c] rounded-xl flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <span className="text-white font-bold text-xl">A</span>
+          </div>
+          <p className="text-slate-500">Loading Azze...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show OAuth callback handler if we have a valid callback
+  if (showCallback) {
+    return <OAuthCallback />;
+  }
+
+  return isAuthenticated ? <Dashboard /> : <AuthScreen />;
+}
+
+function App() {
+  return (
+    <AppProvider>
+      <AppContent />
+    </AppProvider>
+  );
+}
+
+export default App;
